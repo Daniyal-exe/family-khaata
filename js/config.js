@@ -4,8 +4,8 @@
 // STEP 1: Replace these with YOUR Supabase project credentials
 // Get them from: https://supabase.com → Your Project → Settings → API
 
-const SUPABASE_URL = 'https://zdfebdriswkkygwzgvco.supabase.co';        // e.g. https://xyzabc.supabase.co
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZmViZHJpc3dra3lnd3pndmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNjMyNTEsImV4cCI6MjA5NDYzOTI1MX0.gWEp8GISEfMsN_IkIj_OI8HzTDNxwVxdzikYdTq7dAk'; // long string starting with eyJ...
+const SUPABASE_URL = typeof __SUPABASE_URL__ !== 'undefined' ? __SUPABASE_URL__ : '';
+const SUPABASE_ANON_KEY = typeof __SUPABASE_ANON_KEY__ !== 'undefined' ? __SUPABASE_ANON_KEY__ : '';
 
 // Initialize Supabase client
 const { createClient } = supabase;
