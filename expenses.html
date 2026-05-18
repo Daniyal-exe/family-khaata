@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khaata — All Expenses</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="page-loader" id="pageLoader">
+  <div class="logo-icon-lg">🏠</div>
+  <div style="color:var(--text-muted);font-size:14px">Loading...</div>
+</div>
+
+<div class="app-layout" id="appLayout" style="display:none">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🏠</div>
+        <span><b>Khaata</b></span>
+      </div>
+    </div>
+    <div class="home-badge">
+      <div class="hb-label">Family Home</div>
+      <div class="hb-name" id="homeBadgeName">Loading...</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-item active" href="expenses.html"><span class="nav-icon">📋</span> All Expenses</a>
+      <a class="nav-item" href="reports.html"><span class="nav-icon">📄</span> Reports</a>
+      <div class="nav-section-label" style="margin-top:20px">Home</div>
+      <div class="nav-item" onclick="showJoinCode()"><span class="nav-icon">🔑</span> Show Join Code</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="dropdown" id="userDropdown">
+        <button class="user-profile-btn" onclick="toggleDropdown()">
+          <div class="avatar" id="userAvatarSidebar">?</div>
+          <div class="user-info">
+            <div class="u-name" id="userNameSidebar">Loading...</div>
+            <div class="u-role">Member</div>
+          </div>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu" style="display:none">
+          <div class="dropdown-item" onclick="toggleTheme()">🌙 Toggle Theme</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item danger" onclick="signOut()">🚪 Logout</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="openSidebar()">☰</button>
+        <span class="topbar-title">All Expenses</span>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Expense</button>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- Summary strip -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 20px;flex:1;min-width:140px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Showing</div>
+          <div style="font-size:20px;font-weight:700" id="filterCount">0</div>
+          <div style="font-size:12px;color:var(--text-muted)">expenses</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 20px;flex:1;min-width:140px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Total</div>
+          <div style="font-size:20px;font-weight:700" id="filterTotal">Rs. 0</div>
+          <div style="font-size:12px;color:var(--text-muted)">filtered amount</div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search expenses..." id="searchInput" oninput="applyFilters()">
+        </div>
+        <select class="filter-select" id="catFilter" onchange="applyFilters()">
+          <option value="">All Categories</option>
+        </select>
+        <input type="month" class="filter-select" id="monthFilter" onchange="applyFilters()" style="padding:10px 12px">
+        <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Clear</button>
+      </div>
+
+      <!-- Expense List -->
+      <div class="card">
+        <div class="card-body">
+          <div id="expenseListContainer">
+            <div class="spinner-center"><div class="spinner spinner-dark"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="expenseModal" style="display:none" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Add Expense</h3>
+      <button class="modal-close" onclick="closeExpenseModal()">✕</button>
+    </div>
+    <input type="hidden" id="editExpenseId">
+    <div class="form-group">
+      <label>Item Name *</label>
+      <input type="text" id="expItemName" placeholder="e.g. Doodh, Sabzi, Petrol">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="form-group">
+        <label>Category *</label>
+        <select id="expCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>Amount (PKR) *</label>
+        <input type="number" id="expAmount" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Date *</label>
+      <input type="date" id="expDate">
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="expNotes" rows="2"
+        style="resize:vertical;width:100%;padding:12px 16px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-secondary btn-full" onclick="closeExpenseModal()">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="saveExpense()" id="saveExpenseBtn">
+        <span id="saveBtnTxt">Save</span>
+        <span id="saveSpinner" style="display:none"><span class="spinner"></span></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Code Modal -->
+<div class="modal-overlay" id="joinCodeModal" style="display:none" onclick="closeOnOverlay(event)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3 class="modal-title">Family Join Code</h3>
+      <button class="modal-close" onclick="document.getElementById('joinCodeModal').style.display='none'">✕</button>
+    </div>
+    <div class="join-code-display">
+      <div class="code" id="joinCodeDisplay">------</div>
+    </div>
+    <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="navigator.clipboard.writeText(homeData?.join_code||'');toast.success('Copied!')">📋 Copy</button>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="modal-overlay" id="deleteModal" style="display:none">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h3 class="modal-title">Delete Expense?</h3>
+      <button class="modal-close" onclick="document.getElementById('deleteModal').style.display='none'">✕</button>
+    </div>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px">
+      Are you sure you want to delete <strong id="deleteExpenseName"></strong>?
+    </p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary btn-full" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+      <button class="btn btn-danger btn-full" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/home.js"></script>
+<script src="js/expenses.js"></script>
+<script>
+let currentUser = null, homeData = null;
+let allExpenses = [], pendingDeleteId = null;
+
+(async () => {
+  const user = await requireAuth();
+  if (!user) return;
+  currentUser = user;
+  const homeId = await checkWorkspace(user.id);
+  if (!homeId) { window.location.href = 'workspace.html'; return; }
+  homeData = await getHome(homeId);
+  document.getElementById('homeBadgeName').textContent = homeData.home_name;
+  document.getElementById('userAvatarSidebar').textContent = initials(user.user_metadata?.name || user.email);
+  document.getElementById('userNameSidebar').textContent = user.user_metadata?.name || user.email.split('@')[0];
+
+  populateCategorySelect();
+  populateCatFilter();
+
+  // Set default month filter to current month
+  document.getElementById('monthFilter').value = currentYM();
+
+  await loadExpenses();
+  subscribeToExpenses(homeId, async () => { await loadExpenses(); });
+
+  document.getElementById('pageLoader').style.display = 'none';
+  document.getElementById('appLayout').style.display = 'flex';
+})();
+
+async function loadExpenses() {
+  allExpenses = await getExpenses(homeData.id);
+  applyFilters();
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const month = document.getElementById('monthFilter').value;
+
+  let filtered = allExpenses.filter(e => {
+    const matchSearch = !search || e.item_name.toLowerCase().includes(search);
+    const matchCat = !cat || e.category === cat;
+    const matchMonth = !month || e.date.startsWith(month);
+    return matchSearch && matchCat && matchMonth;
+  });
+
+  const total = filtered.reduce((s, e) => s + Number(e.amount), 0);
+  document.getElementById('filterCount').textContent = filtered.length;
+  document.getElementById('filterTotal').textContent = formatPKR(total);
+
+  renderExpenses(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('catFilter').value = '';
+  document.getElementById('monthFilter').value = '';
+  applyFilters();
+}
+
+function renderExpenses(expenses) {
+  const el = document.getElementById('expenseListContainer');
+  if (!expenses.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🧾</div>
+        <h3>No expenses found</h3>
+        <p>Try adjusting the filters or add a new expense.</p>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Expense</button>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = expenses.map(e => {
+    const cat = getCat(e.category);
+    return `
+    <div class="expense-item">
+      <div class="expense-cat-icon" style="background:${cat.color}22">${cat.icon}</div>
+      <div class="expense-info">
+        <div class="expense-name">${e.item_name}</div>
+        <div class="expense-meta">
+          <span class="cat-badge">${cat.label}</span>
+          <span>📅 ${formatDate(e.date)}</span>
+          ${e.users?.name ? `<span>👤 ${e.users.name}</span>` : ''}
+          ${e.notes ? `<span style="color:var(--text-muted)">📝 ${e.notes}</span>` : ''}
+        </div>
+      </div>
+      <div class="expense-amount">${formatPKR(e.amount)}</div>
+      <div class="expense-actions">
+        <button class="btn btn-ghost btn-icon btn-sm" onclick='openEditModal(${JSON.stringify(e)})'>✏️</button>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="openDeleteModal('${e.id}','${e.item_name.replace(/'/g,'')}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function populateCategorySelect() {
+  document.getElementById('expCategory').innerHTML = CATEGORIES.map(c =>
+    `<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');
+}
+
+function populateCatFilter() {
+  document.getElementById('catFilter').innerHTML =
+    '<option value="">All Categories</option>' +
+    CATEGORIES.map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');
+}
+
+function openAddModal() {
+  document.getElementById('editExpenseId').value = '';
+  document.getElementById('modalTitle').textContent = 'Add Expense';
+  document.getElementById('expItemName').value = '';
+  document.getElementById('expCategory').value = 'grocery';
+  document.getElementById('expAmount').value = '';
+  document.getElementById('expDate').value = toYMD(new Date());
+  document.getElementById('expNotes').value = '';
+  document.getElementById('expenseModal').style.display = 'flex';
+}
+
+function openEditModal(expense) {
+  document.getElementById('editExpenseId').value = expense.id;
+  document.getElementById('modalTitle').textContent = 'Edit Expense';
+  document.getElementById('expItemName').value = expense.item_name;
+  document.getElementById('expCategory').value = expense.category;
+  document.getElementById('expAmount').value = expense.amount;
+  document.getElementById('expDate').value = expense.date;
+  document.getElementById('expNotes').value = expense.notes || '';
+  document.getElementById('expenseModal').style.display = 'flex';
+}
+
+async function saveExpense() {
+  const id = document.getElementById('editExpenseId').value;
+  const itemName = document.getElementById('expItemName').value.trim();
+  const category = document.getElementById('expCategory').value;
+  const amount = document.getElementById('expAmount').value;
+  const date = document.getElementById('expDate').value;
+  const notes = document.getElementById('expNotes').value;
+  if (!itemName || !amount || !date) { toast.warning('Fill required fields.'); return; }
+
+  document.getElementById('saveBtnTxt').style.display = 'none';
+  document.getElementById('saveSpinner').style.display = 'inline-flex';
+  document.getElementById('saveExpenseBtn').disabled = true;
+  try {
+    if (id) {
+      await updateExpense(id, { itemName, category, amount, notes, date });
+      toast.success('Expense updated!');
+    } else {
+      await addExpense({ homeId: homeData.id, itemName, category, amount, notes, date, addedBy: currentUser.id });
+      toast.success('Expense added!');
+    }
+    closeExpenseModal();
+    await loadExpenses();
+  } catch (err) {
+    toast.error(err.message || 'Failed to save.');
+  } finally {
+    document.getElementById('saveBtnTxt').style.display = 'inline';
+    document.getElementById('saveSpinner').style.display = 'none';
+    document.getElementById('saveExpenseBtn').disabled = false;
+  }
+}
+
+function closeExpenseModal() { document.getElementById('expenseModal').style.display = 'none'; }
+
+function openDeleteModal(id, name) {
+  pendingDeleteId = id;
+  document.getElementById('deleteExpenseName').textContent = name;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+async function confirmDelete() {
+  try {
+    await deleteExpense(pendingDeleteId);
+    document.getElementById('deleteModal').style.display = 'none';
+    toast.success('Deleted!');
+    await loadExpenses();
+  } catch (err) { toast.error('Failed to delete.'); }
+  pendingDeleteId = null;
+}
+
+function showJoinCode() {
+  document.getElementById('joinCodeDisplay').textContent = homeData?.join_code || '------';
+  document.getElementById('joinCodeModal').style.display = 'flex';
+}
+
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+function toggleDropdown() { const m=document.getElementById('dropdownMenu'); m.style.display=m.style.display==='none'?'block':'none'; }
+function closeOnOverlay(e) { if(e.target===e.currentTarget) e.currentTarget.style.display='none'; }
+document.addEventListener('click', e => { const dd=document.getElementById('userDropdown'); if(dd&&!dd.contains(e.target)) document.getElementById('dropdownMenu').style.display='none'; });
+</script>
+</body>
+</html>

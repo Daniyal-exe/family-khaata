@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khaata — Login</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="logo-icon">🏠</div>
+      <span><b>Khaata</b> App</span>
+    </div>
+
+    <!-- Tab Switcher -->
+    <div class="tab-switcher" id="authTabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <h2 class="auth-title">Welcome back!</h2>
+      <p class="auth-subtitle">Login to manage your family expenses.</p>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@email.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="handleLogin()" id="loginBtn">
+        <span id="loginBtnText">Login</span>
+        <span id="loginSpinner" style="display:none"><span class="spinner"></span></span>
+      </button>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" style="display:none">
+      <h2 class="auth-title">Create account</h2>
+      <p class="auth-subtitle">Set up your family expense tracker.</p>
+
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="signupName" placeholder="e.g. Ahmed Khan" required>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="signupEmail" placeholder="you@email.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Min. 6 characters" required>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="handleSignup()" id="signupBtn">
+        <span id="signupBtnText">Create Account</span>
+        <span id="signupSpinner" style="display:none"><span class="spinner"></span></span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Theme toggle (floating) -->
+  <button class="theme-toggle" onclick="toggleTheme()"
+    style="position:fixed;top:20px;right:20px;z-index:10">🌙</button>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // If already logged in, go to dashboard
+    (async () => { await checkAuthRedirect(); })();
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) { toast.warning('Please fill in all fields.'); return; }
+
+      setLoading('login', true);
+      try {
+        await signIn(email, password);
+        toast.success('Welcome back!');
+        setTimeout(() => window.location.href = 'dashboard.html', 500);
+      } catch (err) {
+        toast.error(err.message || 'Login failed. Check your credentials.');
+      } finally {
+        setLoading('login', false);
+      }
+    }
+
+    async function handleSignup() {
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      if (!name || !email || !password) { toast.warning('Please fill in all fields.'); return; }
+      if (password.length < 6) { toast.warning('Password must be at least 6 characters.'); return; }
+
+      setLoading('signup', true);
+      try {
+        await signUp(name, email, password);
+        toast.success('Account created! Please check your email to confirm, then login.');
+        setTimeout(() => switchTabById('login'), 2000);
+      } catch (err) {
+        toast.error(err.message || 'Signup failed. Please try again.');
+      } finally {
+        setLoading('signup', false);
+      }
+    }
+
+    function switchTabById(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (tab==='login' && i===0) || (tab==='signup' && i===1));
+      });
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+    }
+
+    function setLoading(form, loading) {
+      document.getElementById(`${form}BtnText`).style.display = loading ? 'none' : 'inline';
+      document.getElementById(`${form}Spinner`).style.display = loading ? 'inline-flex' : 'none';
+      document.getElementById(`${form}Btn`).disabled = loading;
+    }
+
+    // Allow Enter key on inputs
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const loginVisible = document.getElementById('loginForm').style.display !== 'none';
+        loginVisible ? handleLogin() : handleSignup();
+      }
+    });
+  </script>
+</body>
+</html>

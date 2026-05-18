@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khaata — Setup Workspace</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="workspace-page">
+  <div class="workspace-card">
+
+    <div class="auth-logo" style="margin-bottom:28px">
+      <div class="logo-icon">🏠</div>
+      <span><b>Khaata</b> App</span>
+    </div>
+
+    <h2 style="font-size:22px;margin-bottom:6px">Setup Your Family Workspace</h2>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:28px">
+      Create a new home workspace or join your family's existing one.
+    </p>
+
+    <!-- Tab Switcher -->
+    <div class="tab-switcher" style="margin-bottom:24px">
+      <button class="tab-btn active" onclick="switchTab('create', this)">Create New Home</button>
+      <button class="tab-btn" onclick="switchTab('join', this)">Join with Code</button>
+    </div>
+
+    <!-- Create Form -->
+    <div id="createSection">
+      <div class="form-group">
+        <label>Family / Home Name</label>
+        <input type="text" id="homeName" placeholder="e.g. Khan Family, Gulshan Home">
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">
+        A unique join code will be generated automatically for family members to use.
+      </p>
+      <button class="btn btn-primary btn-full" onclick="handleCreate()" id="createBtn">
+        <span id="createBtnTxt">🏠 Create Home</span>
+        <span id="createSpinner" style="display:none"><span class="spinner"></span></span>
+      </button>
+    </div>
+
+    <!-- Join Form -->
+    <div id="joinSection" style="display:none">
+      <div class="form-group">
+        <label>6-Character Join Code</label>
+        <input type="text" id="joinCode" placeholder="e.g. AB3X7K" maxlength="6"
+          style="text-transform:uppercase;letter-spacing:0.15em;font-weight:700;font-size:18px;text-align:center">
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">
+        Ask your family member who created the workspace to share the join code.
+      </p>
+      <button class="btn btn-primary btn-full" onclick="handleJoin()" id="joinBtn">
+        <span id="joinBtnTxt">🔑 Join Home</span>
+        <span id="joinSpinner" style="display:none"><span class="spinner"></span></span>
+      </button>
+    </div>
+
+    <!-- Logout link -->
+    <div style="text-align:center;margin-top:20px">
+      <a href="#" onclick="signOut()" style="font-size:13px;color:var(--text-muted)">← Logout</a>
+    </div>
+
+  </div>
+</div>
+
+<button class="theme-toggle" onclick="toggleTheme()" style="position:fixed;top:20px;right:20px">🌙</button>
+
+<script src="js/config.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/home.js"></script>
+<script>
+  let currentUser = null;
+
+  (async () => {
+    currentUser = await requireAuth();
+    if (!currentUser) return;
+    // If already has a home, go to dashboard
+    const homeId = await checkWorkspace(currentUser.id);
+    if (homeId) window.location.href = 'dashboard.html';
+  })();
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('createSection').style.display = tab === 'create' ? 'block' : 'none';
+    document.getElementById('joinSection').style.display = tab === 'join' ? 'block' : 'none';
+  }
+
+  async function handleCreate() {
+    const name = document.getElementById('homeName').value.trim();
+    if (!name) { toast.warning('Please enter a home name.'); return; }
+    setLoad('create', true);
+    try {
+      const home = await createHome(name, currentUser.id);
+      toast.success(`Home "${home.home_name}" created! Join code: ${home.join_code}`);
+      setTimeout(() => window.location.href = 'dashboard.html', 1200);
+    } catch (err) {
+      toast.error(err.message || 'Failed to create home.');
+    } finally { setLoad('create', false); }
+  }
+
+  async function handleJoin() {
+    const code = document.getElementById('joinCode').value.trim().toUpperCase();
+    if (code.length !== 6) { toast.warning('Join code must be 6 characters.'); return; }
+    setLoad('join', true);
+    try {
+      const home = await joinHome(code, currentUser.id);
+      toast.success(`Joined "${home.home_name}" successfully!`);
+      setTimeout(() => window.location.href = 'dashboard.html', 1200);
+    } catch (err) {
+      toast.error(err.message || 'Invalid join code.');
+    } finally { setLoad('join', false); }
+  }
+
+  function setLoad(form, loading) {
+    document.getElementById(`${form}BtnTxt`).style.display = loading ? 'none' : 'inline';
+    document.getElementById(`${form}Spinner`).style.display = loading ? 'inline-flex' : 'none';
+    document.getElementById(`${form}Btn`).disabled = loading;
+  }
+</script>
+</body>
+</html>

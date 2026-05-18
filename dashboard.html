@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khaata — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+  <div class="logo-icon-lg">🏠</div>
+  <div style="color:var(--text-muted);font-size:14px">Loading your Khaata...</div>
+</div>
+
+<!-- App Layout -->
+<div class="app-layout" id="appLayout" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🏠</div>
+        <span><b>Khaata</b></span>
+      </div>
+    </div>
+
+    <div class="home-badge" id="homeBadge">
+      <div class="hb-label">Family Home</div>
+      <div class="hb-name" id="homeBadgeName">Loading...</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu</div>
+      <a class="nav-item active" href="dashboard.html">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a class="nav-item" href="expenses.html">
+        <span class="nav-icon">📋</span> All Expenses
+      </a>
+      <a class="nav-item" href="reports.html">
+        <span class="nav-icon">📄</span> Reports
+      </a>
+
+      <div class="nav-section-label" style="margin-top:20px">Home</div>
+      <div class="nav-item" id="showJoinCodeBtn" onclick="showJoinCode()">
+        <span class="nav-icon">🔑</span> Show Join Code
+      </div>
+      <div class="nav-item" onclick="showMembersModal()">
+        <span class="nav-icon">👨‍👩‍👧‍👦</span> Family Members
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="dropdown" id="userDropdown">
+        <button class="user-profile-btn" onclick="toggleDropdown()">
+          <div class="avatar" id="userAvatarSidebar">?</div>
+          <div class="user-info">
+            <div class="u-name" id="userNameSidebar">Loading...</div>
+            <div class="u-role">Member</div>
+          </div>
+          <span style="margin-left:auto;color:var(--text-muted);font-size:12px">▲</span>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu" style="display:none">
+          <div class="dropdown-item" onclick="toggleTheme()">🌙 Toggle Theme</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item danger" onclick="signOut()">🚪 Logout</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="openSidebar()">☰</button>
+        <span class="topbar-title">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+          + Add Expense
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+
+      <!-- Welcome -->
+      <div style="margin-bottom:24px">
+        <h1 style="font-size:22px;margin-bottom:4px">Good day, <span id="welcomeName">...</span>! 👋</h1>
+        <p style="color:var(--text-secondary);font-size:14px">Here's your family expense overview for <span id="currentMonthLabel">this month</span>.</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">Monthly Spent</div>
+          <div class="stat-value" id="statMonthly">—</div>
+          <div class="stat-sub" id="statMonthlyCount">0 expenses</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">📅</div>
+          <div class="stat-label">Yearly Spent</div>
+          <div class="stat-value" id="statYearly">—</div>
+          <div class="stat-sub">This year</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-label">Top Category</div>
+          <div class="stat-value" id="statTopCat" style="font-size:16px">—</div>
+          <div class="stat-sub">Most spent this month</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon">📈</div>
+          <div class="stat-label">Highest Expense</div>
+          <div class="stat-value" id="statHighest">—</div>
+          <div class="stat-sub">Single transaction</div>
+        </div>
+      </div>
+
+      <!-- Dashboard Grid -->
+      <div class="dashboard-grid">
+
+        <!-- Recent Expenses -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Expenses</span>
+            <a href="expenses.html" class="btn btn-ghost btn-sm">View All →</a>
+          </div>
+          <div class="card-body">
+            <div id="recentExpensesList">
+              <div class="spinner-center"><div class="spinner spinner-dark"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Chart -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">This Month's Breakdown</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrapper">
+              <canvas id="catChart"></canvas>
+            </div>
+            <div id="catLegend" style="margin-top:14px"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Monthly Trend Chart -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <span class="card-title">Monthly Spending Trend</span>
+          <span style="font-size:12px;color:var(--text-muted)" id="trendYear"></span>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrapper">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Add/Edit Expense Modal -->
+<div class="modal-overlay" id="expenseModal" style="display:none" onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Add Expense</h3>
+      <button class="modal-close" onclick="closeExpenseModal()">✕</button>
+    </div>
+
+    <input type="hidden" id="editExpenseId">
+
+    <div class="form-group">
+      <label>Item Name *</label>
+      <input type="text" id="expItemName" placeholder="e.g. Doodh, Sabzi, Petrol">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="form-group">
+        <label>Category *</label>
+        <select id="expCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>Amount (PKR) *</label>
+        <input type="number" id="expAmount" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Date *</label>
+      <input type="date" id="expDate">
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="expNotes" placeholder="Any extra details..." rows="2"
+        style="resize:vertical;width:100%;padding:12px 16px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-secondary btn-full" onclick="closeExpenseModal()">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="saveExpense()" id="saveExpenseBtn">
+        <span id="saveBtnTxt">Save Expense</span>
+        <span id="saveSpinner" style="display:none"><span class="spinner"></span></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Code Modal -->
+<div class="modal-overlay" id="joinCodeModal" style="display:none" onclick="closeModalOnOverlay(event)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3 class="modal-title">Family Join Code</h3>
+      <button class="modal-close" onclick="document.getElementById('joinCodeModal').style.display='none'">✕</button>
+    </div>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">
+      Share this code with family members so they can join your workspace.
+    </p>
+    <div class="join-code-display">
+      <div class="code" id="joinCodeDisplay">------</div>
+    </div>
+    <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="copyJoinCode()">📋 Copy Code</button>
+  </div>
+</div>
+
+<!-- Members Modal -->
+<div class="modal-overlay" id="membersModal" style="display:none" onclick="closeModalOnOverlay(event)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3 class="modal-title">👨‍👩‍👧‍👦 Family Members</h3>
+      <button class="modal-close" onclick="document.getElementById('membersModal').style.display='none'">✕</button>
+    </div>
+    <div id="membersList" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal" style="display:none">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h3 class="modal-title">Delete Expense?</h3>
+      <button class="modal-close" onclick="document.getElementById('deleteModal').style.display='none'">✕</button>
+    </div>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px">
+      Are you sure you want to delete <strong id="deleteExpenseName"></strong>? This cannot be undone.
+    </p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary btn-full" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+      <button class="btn btn-danger btn-full" onclick="confirmDelete()" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/home.js"></script>
+<script src="js/expenses.js"></script>
+<script src="js/reports.js"></script>
+<script>
+// =============================================
+// Dashboard Page Logic
+// =============================================
+let currentUser = null;
+let homeData = null;
+let catChartInstance = null;
+let trendChartInstance = null;
+let pendingDeleteId = null;
+
+// ---- Boot ----
+(async () => {
+  try {
+    // Step 1: Check auth
+    updateLoader('Checking login...');
+    const { data: { session }, error: sessionErr } = await sb.auth.getSession();
+    if (sessionErr) throw new Error('Auth error: ' + sessionErr.message);
+    if (!session) { window.location.href = 'index.html'; return; }
+    currentUser = session.user;
+
+    // Step 2: Make sure user row exists (auto-create if missing)
+    updateLoader('Loading your profile...');
+    const { data: userRow, error: userErr } = await sb
+      .from('users')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    // If user row doesn't exist, create it now
+    if (userErr && userErr.code === 'PGRST116') {
+      const { error: insertErr } = await sb.from('users').insert({
+        id: currentUser.id,
+        name: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
+        email: currentUser.email,
+        home_id: null
+      });
+      if (insertErr && insertErr.code !== '23505') throw new Error('Profile setup failed: ' + insertErr.message);
+      // No home yet → go to workspace setup
+      window.location.href = 'workspace.html';
+      return;
+    } else if (userErr) {
+      throw new Error('Profile load failed: ' + userErr.message);
+    }
+
+    // Step 3: Check if user has a home
+    updateLoader('Loading your home...');
+    if (!userRow.home_id) {
+      window.location.href = 'workspace.html';
+      return;
+    }
+
+    // Step 4: Load home data
+    const { data: home, error: homeErr } = await sb
+      .from('homes')
+      .select('*')
+      .eq('id', userRow.home_id)
+      .single();
+    if (homeErr) throw new Error('Home load failed: ' + homeErr.message);
+    homeData = home;
+
+    // Step 5: Update UI with user/home info
+    updateLoader('Setting up dashboard...');
+    document.getElementById('homeBadgeName').textContent = homeData.home_name;
+    const displayName = userRow.name || currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+    document.getElementById('userAvatarSidebar').textContent = initials(displayName);
+    document.getElementById('userNameSidebar').textContent = displayName;
+    document.getElementById('welcomeName').textContent = displayName.split(' ')[0] || 'Friend';
+
+    const now = new Date();
+    document.getElementById('currentMonthLabel').textContent =
+      now.toLocaleDateString('en-PK', { month: 'long', year: 'numeric' });
+    document.getElementById('trendYear').textContent = now.getFullYear();
+
+    populateCategorySelect();
+
+    // Step 6: Load dashboard data
+    updateLoader('Loading expenses...');
+    await loadDashboard();
+
+    // Step 7: Subscribe to realtime updates
+    subscribeToExpenses(homeData.id, async () => {
+      await loadDashboard();
+      toast.info('📡 Updated in realtime!');
+    });
+
+    // Step 8: Show app
+    document.getElementById('pageLoader').style.display = 'none';
+    document.getElementById('appLayout').style.display = 'flex';
+
+  } catch (err) {
+    // Show error on loader screen instead of freezing
+    console.error('Boot error:', err);
+    document.getElementById('pageLoader').innerHTML = `
+      <div style="text-align:center;padding:20px;max-width:400px">
+        <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+        <h3 style="color:var(--text-primary);margin-bottom:10px">Something went wrong</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;word-break:break-word">${err.message}</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button onclick="window.location.reload()" class="btn btn-primary btn-sm">🔄 Retry</button>
+          <button onclick="signOut()" class="btn btn-ghost btn-sm">🚪 Logout</button>
+        </div>
+        <p style="margin-top:16px;font-size:12px;color:var(--text-muted)">
+          Check your Supabase URL and anon key in js/config.js
+        </p>
+      </div>`;
+  }
+})();
+
+function updateLoader(msg) {
+  const el = document.querySelector('#pageLoader div:last-child');
+  if (el) el.textContent = msg;
+}
+
+// ---- Load dashboard data ----
+async function loadDashboard() {
+  const ym = currentYM();
+  const year = new Date().getFullYear();
+
+  const [stats, yearTotal, recentExpenses, monthlySummary] = await Promise.all([
+    getMonthStats(homeData.id, ym),
+    getYearTotal(homeData.id, year),
+    getExpenses(homeData.id, {}),
+    getMonthlySummary(homeData.id, year),
+  ]);
+
+  // Stats cards
+  document.getElementById('statMonthly').textContent = formatPKR(stats.total);
+  document.getElementById('statMonthlyCount').textContent = `${stats.count} expenses`;
+  document.getElementById('statYearly').textContent = formatPKR(yearTotal);
+  document.getElementById('statTopCat').textContent = stats.topCategory;
+  document.getElementById('statHighest').textContent = formatPKR(stats.highest);
+
+  // Recent expenses (last 8)
+  renderRecentExpenses(recentExpenses.slice(0, 8));
+
+  // Category donut chart
+  renderCatChart(stats.catTotals);
+
+  // Monthly trend chart
+  renderTrendChart(monthlySummary);
+}
+
+// ---- Render recent expenses ----
+function renderRecentExpenses(expenses) {
+  const el = document.getElementById('recentExpensesList');
+  if (!expenses.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🧾</div>
+        <h3>No expenses yet</h3>
+        <p>Add your first family expense to get started!</p>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Expense</button>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = expenses.map(e => {
+    const cat = getCat(e.category);
+    return `
+    <div class="expense-item" id="exp-${e.id}">
+      <div class="expense-cat-icon" style="background:${cat.color}22">${cat.icon}</div>
+      <div class="expense-info">
+        <div class="expense-name">${e.item_name}</div>
+        <div class="expense-meta">
+          <span class="cat-badge">${cat.label}</span>
+          <span>📅 ${formatDate(e.date)}</span>
+          ${e.users?.name ? `<span>👤 ${e.users.name}</span>` : ''}
+        </div>
+      </div>
+      <div class="expense-amount">${formatPKR(e.amount)}</div>
+      <div class="expense-actions">
+        <button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick='openEditModal(${JSON.stringify(e)})'>✏️</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="Delete" onclick="openDeleteModal('${e.id}', '${e.item_name.replace(/'/g,'')}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---- Category Donut Chart ----
+function renderCatChart(catTotals) {
+  const canvas = document.getElementById('catChart');
+  const labels = [], data = [], colors = [];
+
+  Object.entries(catTotals).forEach(([catId, amt]) => {
+    const cat = getCat(catId);
+    labels.push(cat.label);
+    data.push(amt);
+    colors.push(cat.color);
+  });
+
+  if (catChartInstance) catChartInstance.destroy();
+
+  if (!data.length) {
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('catLegend').innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:13px">No data this month</p>';
+    return;
+  }
+
+  catChartInstance = new Chart(canvas, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${formatPKR(ctx.raw)}`
+          }
+        }
+      }
+    }
+  });
+
+  // Legend
+  const total = data.reduce((a,b)=>a+b,0);
+  document.getElementById('catLegend').innerHTML = labels.map((l, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px">
+      <span style="width:10px;height:10px;border-radius:3px;background:${colors[i]};flex-shrink:0;display:inline-block"></span>
+      <span style="flex:1;color:var(--text-secondary)">${l}</span>
+      <span style="font-weight:700;color:var(--text-primary)">${total > 0 ? Math.round(data[i]/total*100) : 0}%</span>
+    </div>`).join('');
+}
+
+// ---- Monthly Trend Bar Chart ----
+function renderTrendChart(monthlySummary) {
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const year = new Date().getFullYear();
+  const labels = monthNames;
+  const data = monthNames.map((_, i) => {
+    const key = `${year}-${String(i+1).padStart(2,'0')}`;
+    return monthlySummary[key]?.total || 0;
+  });
+
+  if (trendChartInstance) trendChartInstance.destroy();
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const textColor = isDark ? '#64748b' : '#94a3b8';
+
+  trendChartInstance = new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Monthly Spending',
+        data,
+        backgroundColor: data.map((_, i) => {
+          const m = new Date().getMonth();
+          return i === m ? '#2563eb' : (isDark ? '#1e3a5f' : '#dbeafe');
+        }),
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + formatPKR(ctx.raw) } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 11 } } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => 'Rs.' + (v/1000 > 0 ? (v/1000).toFixed(0)+'k' : v) } }
+      }
+    }
+  });
+}
+
+// ---- Populate category select ----
+function populateCategorySelect() {
+  const sel = document.getElementById('expCategory');
+  sel.innerHTML = CATEGORIES.map(c =>
+    `<option value="${c.id}">${c.icon} ${c.label}</option>`
+  ).join('');
+}
+
+// ---- Open Add Modal ----
+function openAddModal() {
+  document.getElementById('editExpenseId').value = '';
+  document.getElementById('modalTitle').textContent = 'Add Expense';
+  document.getElementById('expItemName').value = '';
+  document.getElementById('expCategory').value = 'grocery';
+  document.getElementById('expAmount').value = '';
+  document.getElementById('expDate').value = toYMD(new Date());
+  document.getElementById('expNotes').value = '';
+  document.getElementById('saveBtnTxt').textContent = 'Save Expense';
+  document.getElementById('expenseModal').style.display = 'flex';
+}
+
+// ---- Open Edit Modal ----
+function openEditModal(expense) {
+  document.getElementById('editExpenseId').value = expense.id;
+  document.getElementById('modalTitle').textContent = 'Edit Expense';
+  document.getElementById('expItemName').value = expense.item_name;
+  document.getElementById('expCategory').value = expense.category;
+  document.getElementById('expAmount').value = expense.amount;
+  document.getElementById('expDate').value = expense.date;
+  document.getElementById('expNotes').value = expense.notes || '';
+  document.getElementById('saveBtnTxt').textContent = 'Update Expense';
+  document.getElementById('expenseModal').style.display = 'flex';
+}
+
+// ---- Save Expense ----
+async function saveExpense() {
+  const id = document.getElementById('editExpenseId').value;
+  const itemName = document.getElementById('expItemName').value.trim();
+  const category = document.getElementById('expCategory').value;
+  const amount = document.getElementById('expAmount').value;
+  const date = document.getElementById('expDate').value;
+  const notes = document.getElementById('expNotes').value;
+
+  if (!itemName || !amount || !date) { toast.warning('Please fill in required fields.'); return; }
+  if (parseFloat(amount) <= 0) { toast.warning('Amount must be greater than 0.'); return; }
+
+  setSaveLoad(true);
+  try {
+    if (id) {
+      await updateExpense(id, { itemName, category, amount, notes, date });
+      toast.success('Expense updated!');
+    } else {
+      await addExpense({
+        homeId: homeData.id,
+        itemName, category, amount, notes, date,
+        addedBy: currentUser.id
+      });
+      toast.success('Expense added!');
+    }
+    closeExpenseModal();
+    await loadDashboard();
+  } catch (err) {
+    toast.error(err.message || 'Failed to save expense.');
+  } finally { setSaveLoad(false); }
+}
+
+function setSaveLoad(loading) {
+  document.getElementById('saveBtnTxt').style.display = loading ? 'none' : 'inline';
+  document.getElementById('saveSpinner').style.display = loading ? 'inline-flex' : 'none';
+  document.getElementById('saveExpenseBtn').disabled = loading;
+}
+
+function closeExpenseModal() {
+  document.getElementById('expenseModal').style.display = 'none';
+}
+
+// ---- Delete ----
+function openDeleteModal(id, name) {
+  pendingDeleteId = id;
+  document.getElementById('deleteExpenseName').textContent = name;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  document.getElementById('confirmDeleteBtn').disabled = true;
+  try {
+    await deleteExpense(pendingDeleteId);
+    document.getElementById('deleteModal').style.display = 'none';
+    toast.success('Expense deleted.');
+    await loadDashboard();
+  } catch (err) {
+    toast.error('Failed to delete expense.');
+  } finally {
+    document.getElementById('confirmDeleteBtn').disabled = false;
+    pendingDeleteId = null;
+  }
+}
+
+// ---- Join Code Modal ----
+function showJoinCode() {
+  document.getElementById('joinCodeDisplay').textContent = homeData?.join_code || '------';
+  document.getElementById('joinCodeModal').style.display = 'flex';
+}
+
+function copyJoinCode() {
+  navigator.clipboard.writeText(homeData?.join_code || '');
+  toast.success('Join code copied!');
+}
+
+// ---- Members Modal ----
+async function showMembersModal() {
+  document.getElementById('membersModal').style.display = 'flex';
+  document.getElementById('membersList').innerHTML = '<div class="spinner-center"><div class="spinner spinner-dark"></div></div>';
+  const members = await getHomeMembers(homeData.id);
+  document.getElementById('membersList').innerHTML = members.map(m => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="avatar avatar-sm">${initials(m.name)}</div>
+      <div>
+        <div style="font-size:14px;font-weight:600">${m.name}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${m.email}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ---- Sidebar mobile ----
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('visible');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
+}
+
+// ---- Dropdown ----
+function toggleDropdown() {
+  const m = document.getElementById('dropdownMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', e => {
+  const dd = document.getElementById('userDropdown');
+  if (dd && !dd.contains(e.target)) {
+    document.getElementById('dropdownMenu').style.display = 'none';
+  }
+});
+
+// ---- Close modal on overlay click ----
+function closeModalOnOverlay(e) {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>
