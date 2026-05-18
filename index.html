@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Khaata — Login</title>
   <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -13,7 +14,7 @@
   <div class="auth-card">
 
     <div class="auth-logo">
-      <div class="logo-icon">🏠</div>
+      <div class="logo-icon"><i class="ri-home-4-line" aria-hidden="true"></i></div>
       <span><b>Khaata</b> App</span>
     </div>
 
@@ -32,9 +33,14 @@
         <label>Email Address</label>
         <input type="email" id="loginEmail" placeholder="you@email.com" required>
       </div>
-      <div class="form-group">
+      <div class="form-group password-field">
         <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" required>
+        <div class="password-wrapper">
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+          <button type="button" class="password-toggle" aria-label="Toggle password visibility" onclick="togglePassword('loginPassword', this)">
+            <i class="ri-eye-line" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
 
       <button class="btn btn-primary btn-full" onclick="handleLogin()" id="loginBtn">
@@ -56,9 +62,14 @@
         <label>Email Address</label>
         <input type="email" id="signupEmail" placeholder="you@email.com" required>
       </div>
-      <div class="form-group">
+      <div class="form-group password-field">
         <label>Password</label>
-        <input type="password" id="signupPassword" placeholder="Min. 6 characters" required>
+        <div class="password-wrapper">
+          <input type="password" id="signupPassword" placeholder="Min. 6 characters" required>
+          <button type="button" class="password-toggle" aria-label="Toggle password visibility" onclick="togglePassword('signupPassword', this)">
+            <i class="ri-eye-line" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
 
       <button class="btn btn-primary btn-full" onclick="handleSignup()" id="signupBtn">
@@ -71,7 +82,23 @@
 
   <!-- Theme toggle (floating) -->
   <button class="theme-toggle" onclick="toggleTheme()"
-    style="position:fixed;top:20px;right:20px;z-index:10">🌙</button>
+    style="position:fixed;top:20px;right:20px;z-index:10"><i class="ri-moon-line" aria-hidden="true"></i></button>
+
+  <style>
+    /* Login page specific styles for responsive layout and password toggle */
+    .auth-card { max-width:420px; width:100%; margin:48px auto; padding:28px; box-sizing:border-box; }
+    .password-wrapper { position:relative; }
+    .password-wrapper input { padding-right:44px; }
+    .password-toggle { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none;border:0;padding:6px;cursor:pointer;color:var(--text-muted);font-size:18px }
+    @media (max-width:480px) {
+      .auth-card { margin:20px; padding:18px; }
+      .auth-logo { display:flex; align-items:center; gap:8px; }
+      .auth-title { font-size:20px }
+      .auth-subtitle { font-size:13px }
+      .tab-switcher { display:flex; gap:8px; }
+      .btn.btn-full { padding:10px 12px }
+    }
+  </style>
 
   <!-- Scripts -->
   <script src="js/config.js"></script>
@@ -137,6 +164,19 @@
       document.getElementById(`${form}BtnText`).style.display = loading ? 'none' : 'inline';
       document.getElementById(`${form}Spinner`).style.display = loading ? 'inline-flex' : 'none';
       document.getElementById(`${form}Btn`).disabled = loading;
+    }
+
+    function togglePassword(inputId, btn) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      const icon = btn.querySelector('i');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        if (icon) { icon.classList.remove('ri-eye-line'); icon.classList.add('ri-eye-off-line'); }
+      } else {
+        inp.type = 'password';
+        if (icon) { icon.classList.remove('ri-eye-off-line'); icon.classList.add('ri-eye-line'); }
+      }
     }
 
     // Allow Enter key on inputs
