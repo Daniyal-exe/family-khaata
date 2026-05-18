@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Khaata — Setup Workspace</title>
   <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -13,7 +14,7 @@
   <div class="workspace-card">
 
     <div class="auth-logo" style="margin-bottom:28px">
-      <div class="logo-icon">🏠</div>
+      <div class="logo-icon"><i class="ri-home-4-line" aria-hidden="true"></i></div>
       <span><b>Khaata</b> App</span>
     </div>
 
@@ -38,7 +39,7 @@
         A unique join code will be generated automatically for family members to use.
       </p>
       <button class="btn btn-primary btn-full" onclick="handleCreate()" id="createBtn">
-        <span id="createBtnTxt">🏠 Create Home</span>
+        <span id="createBtnTxt"><i class="ri-home-line" aria-hidden="true"></i> Create Home</span>
         <span id="createSpinner" style="display:none"><span class="spinner"></span></span>
       </button>
     </div>
@@ -54,7 +55,7 @@
         Ask your family member who created the workspace to share the join code.
       </p>
       <button class="btn btn-primary btn-full" onclick="handleJoin()" id="joinBtn">
-        <span id="joinBtnTxt">🔑 Join Home</span>
+        <span id="joinBtnTxt"><i class="ri-key-2-line" aria-hidden="true"></i> Join Home</span>
         <span id="joinSpinner" style="display:none"><span class="spinner"></span></span>
       </button>
     </div>
@@ -67,7 +68,7 @@
   </div>
 </div>
 
-<button class="theme-toggle" onclick="toggleTheme()" style="position:fixed;top:20px;right:20px">🌙</button>
+<button class="theme-toggle" onclick="toggleTheme()" style="position:fixed;top:20px;right:20px"><i class="ri-moon-line" aria-hidden="true"></i></button>
 
 <script src="js/config.js"></script>
 <script src="js/theme.js"></script>

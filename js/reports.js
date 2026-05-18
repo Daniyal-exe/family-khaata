@@ -93,7 +93,7 @@ function downloadPDF(expenses, monthLabel, homeName) {
 </head>
 <body>
 <div class="header">
-  <div class="logo">🏠</div>
+  <div class="logo"><i class="ri-home-4-line" aria-hidden="true"></i></div>
   <div>
     <h1>Monthly Expense Report</h1>
     <p>${homeName} &nbsp;·&nbsp; ${monthLabel}</p>

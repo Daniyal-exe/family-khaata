@@ -1,4 +1,4 @@
-# 🏠 Khaata — Family Expense Manager
+# Khaata — Family Expense Manager
 ## Complete Setup Guide (Step by Step)
 
 ---

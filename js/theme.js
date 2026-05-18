@@ -13,7 +13,7 @@ function applyTheme(theme) {
   localStorage.setItem('khaata_theme', theme);
   // Update all toggle buttons on the page
   document.querySelectorAll('.theme-toggle').forEach(btn => {
-    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.innerHTML = theme === 'dark' ? '<i class="ri-sun-line" aria-hidden="true"></i>' : '<i class="ri-moon-line" aria-hidden="true"></i>';
     btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
   });
 }

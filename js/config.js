@@ -15,15 +15,15 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // EXPENSE CATEGORIES with icons and colors
 // =============================================
 const CATEGORIES = [
-  { id: 'nashta',      label: 'Nashta',        icon: '🍳', color: '#f59e0b' },
-  { id: 'milk',        label: 'Milk',           icon: '🥛', color: '#06b6d4' },
-  { id: 'petrol',      label: 'Petrol',         icon: '⛽', color: '#ef4444' },
-  { id: 'grocery',     label: 'Grocery',        icon: '🛒', color: '#10b981' },
-  { id: 'vegetables',  label: 'Vegetables',     icon: '🥦', color: '#84cc16' },
-  { id: 'fruits',      label: 'Fruits',         icon: '🍎', color: '#f97316' },
-  { id: 'utility',     label: 'Utility Bills',  icon: '💡', color: '#8b5cf6' },
-  { id: 'snacks',      label: 'Cheez/Snacks',   icon: '🍿', color: '#ec4899' },
-  { id: 'others',      label: 'Others',         icon: '📦', color: '#6b7280' },
+  { id: 'nashta',      label: 'Nashta',        icon: '<i class="ri-restaurant-line"></i>', color: '#f59e0b' },
+  { id: 'milk',        label: 'Milk',           icon: '<i class="ri-coffee-line"></i>', color: '#06b6d4' },
+  { id: 'petrol',      label: 'Petrol',         icon: '<i class="ri-gas-station-line"></i>', color: '#ef4444' },
+  { id: 'grocery',     label: 'Grocery',        icon: '<i class="ri-shopping-cart-line"></i>', color: '#10b981' },
+  { id: 'vegetables',  label: 'Vegetables',     icon: '<i class="ri-leaf-line"></i>', color: '#84cc16' },
+  { id: 'fruits',      label: 'Fruits',         icon: '<i class="ri-apple-line"></i>', color: '#f97316' },
+  { id: 'utility',     label: 'Utility Bills',  icon: '<i class="ri-plug-2-line"></i>', color: '#8b5cf6' },
+  { id: 'snacks',      label: 'Cheez/Snacks',   icon: '<i class="ri-cookie-line"></i>', color: '#ec4899' },
+  { id: 'others',      label: 'Others',         icon: '<i class="ri-box-2-line"></i>', color: '#6b7280' },
 ];
 
 // Helper: get category by id

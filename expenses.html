@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Khaata — All Expenses</title>
   <link rel="stylesheet" href="css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="page-loader" id="pageLoader">
-  <div class="logo-icon-lg">🏠</div>
+  <div class="logo-icon-lg"><i class="ri-home-4-line" aria-hidden="true"></i></div>
   <div style="color:var(--text-muted);font-size:14px">Loading...</div>
 </div>
 
@@ -19,7 +20,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <div class="logo-icon">🏠</div>
+        <div class="logo-icon"><i class="ri-home-4-line" aria-hidden="true"></i></div>
         <span><b>Khaata</b></span>
       </div>
     </div>
@@ -29,11 +30,11 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menu</div>
-      <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
-      <a class="nav-item active" href="expenses.html"><span class="nav-icon">📋</span> All Expenses</a>
-      <a class="nav-item" href="reports.html"><span class="nav-icon">📄</span> Reports</a>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon"><i class="ri-bar-chart-2-line" aria-hidden="true"></i></span> Dashboard</a>
+      <a class="nav-item active" href="expenses.html"><span class="nav-icon"><i class="ri-file-list-line" aria-hidden="true"></i></span> All Expenses</a>
+      <a class="nav-item" href="reports.html"><span class="nav-icon"><i class="ri-file-chart-line" aria-hidden="true"></i></span> Reports</a>
       <div class="nav-section-label" style="margin-top:20px">Home</div>
-      <div class="nav-item" onclick="showJoinCode()"><span class="nav-icon">🔑</span> Show Join Code</div>
+      <div class="nav-item" onclick="showJoinCode()"><span class="nav-icon"><i class="ri-key-2-line" aria-hidden="true"></i></span> Show Join Code</div>
     </nav>
     <div class="sidebar-footer">
       <div class="dropdown" id="userDropdown">
@@ -45,9 +46,9 @@
           </div>
         </button>
         <div class="dropdown-menu" id="dropdownMenu" style="display:none">
-          <div class="dropdown-item" onclick="toggleTheme()">🌙 Toggle Theme</div>
+          <div class="dropdown-item" onclick="toggleTheme()"><i class="ri-moon-line" aria-hidden="true"></i> Toggle Theme</div>
           <div class="dropdown-divider"></div>
-          <div class="dropdown-item danger" onclick="signOut()">🚪 Logout</div>
+          <div class="dropdown-item danger" onclick="signOut()"><i class="ri-logout-box-line" aria-hidden="true"></i> Logout</div>
         </div>
       </div>
     </div>
@@ -62,7 +63,7 @@
         <span class="topbar-title">All Expenses</span>
       </div>
       <div class="topbar-right">
-        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="ri-moon-line" aria-hidden="true"></i></button>
         <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Expense</button>
       </div>
     </header>
@@ -86,7 +87,7 @@
       <!-- Filter Bar -->
       <div class="filter-bar">
         <div class="search-wrapper">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i class="ri-search-line" aria-hidden="true"></i></span>
           <input type="text" placeholder="Search expenses..." id="searchInput" oninput="applyFilters()">
         </div>
         <select class="filter-select" id="catFilter" onchange="applyFilters()">
@@ -160,7 +161,7 @@
     <div class="join-code-display">
       <div class="code" id="joinCodeDisplay">------</div>
     </div>
-    <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="navigator.clipboard.writeText(homeData?.join_code||'');toast.success('Copied!')">📋 Copy</button>
+    <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="navigator.clipboard.writeText(homeData?.join_code||'');toast.success('Copied!')"><i class="ri-file-copy-line" aria-hidden="true"></i> Copy</button>
   </div>
 </div>
 
@@ -268,15 +269,15 @@ function renderExpenses(expenses) {
         <div class="expense-name">${e.item_name}</div>
         <div class="expense-meta">
           <span class="cat-badge">${cat.label}</span>
-          <span>📅 ${formatDate(e.date)}</span>
-          ${e.users?.name ? `<span>👤 ${e.users.name}</span>` : ''}
-          ${e.notes ? `<span style="color:var(--text-muted)">📝 ${e.notes}</span>` : ''}
+          <span><i class="ri-calendar-line" aria-hidden="true"></i> ${formatDate(e.date)}</span>
+          ${e.users?.name ? `<span><i class="ri-user-line" aria-hidden="true"></i> ${e.users.name}</span>` : ''}
+          ${e.notes ? `<span style="color:var(--text-muted)"><i class="ri-file-text-line" aria-hidden="true"></i> ${e.notes}</span>` : ''}
         </div>
       </div>
       <div class="expense-amount">${formatPKR(e.amount)}</div>
       <div class="expense-actions">
         <button class="btn btn-ghost btn-icon btn-sm" onclick='openEditModal(${JSON.stringify(e)})'>✏️</button>
-        <button class="btn btn-ghost btn-icon btn-sm" onclick="openDeleteModal('${e.id}','${e.item_name.replace(/'/g,'')}')">🗑️</button>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="openDeleteModal('${e.id}','${e.item_name.replace(/'/g,'')}')"><i class="ri-delete-bin-line" aria-hidden="true"></i></button>
       </div>
     </div>`;
   }).join('');
